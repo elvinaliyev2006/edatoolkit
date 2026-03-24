@@ -13,7 +13,7 @@ This toolkit encapsulates complex statistical workflows into a modular `EDA` cla
 
 ## 🗺️ Class Overview
 
-![EDA class skeleton](assets/skeleton.svg)
+![EDA class skeleton](edatoolkit/assets/skeleton.svg)
 
 ---
 
