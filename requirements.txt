@@ -1,0 +1,7 @@
+pandas
+numpy
+plotly
+scipy
+kaleido
+nbformat
+statsmodels
