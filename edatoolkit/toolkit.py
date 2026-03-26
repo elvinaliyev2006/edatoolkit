@@ -413,9 +413,10 @@ class EDA:
 
         """
         Analyzes the relationship between the target column and categorical columns.
-        - If target is categorical: Chi-Square test and Cramer's V with heatmap.
+        - If target is categorical: Chi-Square test and Cramer's V with heatmap visualization.
         - If target is numerical: ANOVA / Kruskal-Wallis / T-test / Mann-Whitney U test
-        with box plot visualization.
+        with box plot visualization. Normality is assessed independently per group
+        using Shapiro-Wilk (n ≤ 2500) or D'Agostino K² (n > 2500).
 
         Parameters
         ----------
@@ -426,8 +427,6 @@ class EDA:
         """
 
         if self.cat_cols:
-            if self.num_summary_df is None:
-                raise RuntimeError("Run num_summary() first.")
             print(f'\n{self.line}')
             print(' Target Analysis with Categorical Variables '.center(170))
             print(self.line)
@@ -507,17 +506,22 @@ class EDA:
                     print(self.line)
 
             elif self.target_col in self.num_cols:
-                print(self.num_summary_df)
                 for col in self.cat_cols:
                     df_pivot = self.dataframe.pivot_table(index=col, values=self.target_col,
                                                           aggfunc=['mean', 'median', 'count'])
                     print(df_pivot)
                     groups = []
+                    normality_for_group=[]
                     for i in self.dataframe[col].unique():
                         val = self.dataframe[self.dataframe[col] == i][self.target_col]
                         groups.append(val)
-                    is_normal = self.num_summary_df[self.num_summary_df['Column'] == self.target_col]['Result']
-                    is_normal = is_normal.values[0] == 'Normal'
+                        if len(val)<=2500:
+                            _,p_val_group=scipy.stats.shapiro(val)
+                        else:
+                            _, p_val_group = scipy.stats.normaltest(val)
+                        normality_for_group.append(p_val_group)
+                    normality_for_group=np.array(normality_for_group)
+                    is_normal=bool((normality_for_group>self.alpha).all())
                     unique_count = len(groups)
                     if unique_count < 2:
                         print(f"Skipping {col}: Not enough groups for comparison.")
@@ -564,8 +568,10 @@ class EDA:
         """
         Analyzes the relationship between the target column and numerical columns.
         - If target is categorical: T-test / Mann-Whitney U / ANOVA / Kruskal-Wallis
-        with box plot visualization.
+        with box plot visualization. Normality is assessed independently per group
+        using Shapiro-Wilk (n ≤ 2500) or D'Agostino K² (n > 2500).
         - If target is numerical: Pearson or Spearman correlation with scatter plot.
+        Requires num_summary() to be run first to determine the correlation method.
 
         Parameters
         ----------
@@ -576,8 +582,6 @@ class EDA:
         """
 
         if self.num_cols:
-            if self.num_summary_df is None:
-                raise RuntimeError("Run num_summary() first.")
             print(f'\n{self.line}')
             print(' Target Analysis with Numerical Variables '.center(170))
             print(self.line)
@@ -587,11 +591,17 @@ class EDA:
                                                           aggfunc=['mean', 'median', 'count'])
                     print(df_pivot)
                     groups = []
+                    normality_for_group = []
                     for i in self.dataframe[self.target_col].unique():
                         val = self.dataframe[self.dataframe[self.target_col] == i][col]
                         groups.append(val)
-                    is_normal = self.num_summary_df[self.num_summary_df['Column'] == col]['Result']
-                    is_normal = is_normal.values[0] == 'Normal'
+                        if len(val)<=2500:
+                            _,p_val_group=scipy.stats.shapiro(val)
+                        else:
+                            _, p_val_group = scipy.stats.normaltest(val)
+                        normality_for_group.append(p_val_group)
+                    normality_for_group=np.array(normality_for_group)
+                    is_normal=bool((normality_for_group>self.alpha).all())
                     unique_count = len(groups)
                     if unique_count < 2:
                         print(f"Skipping {col}: Not enough groups for comparison.")
@@ -632,6 +642,8 @@ class EDA:
                     print(self.line)
 
             elif self.target_col in self.num_cols:
+                if self.num_summary_df is None:
+                    raise RuntimeError("Run num_summary() first.")
                 cols_to_analyze = [col for col in self.num_cols if col != self.target_col]
                 for col in cols_to_analyze:
                     is_normal_target = \
