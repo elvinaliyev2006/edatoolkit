@@ -232,8 +232,6 @@ eda.correlation_heatmap(method="spearman")
 
 ```text
 edatoolkit/
-├── assets/
-│   └── skeleton.svg          ← class diagram
 ├── edatoolkit/
 │   ├── __init__.py
 │   └── toolkit.py            ← main EDA class
