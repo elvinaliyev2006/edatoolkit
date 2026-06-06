@@ -1,15 +1,13 @@
 import pandas as pd
 import numpy as np
-import plotly.express as px
-from plotly.subplots import make_subplots
-import plotly.graph_objects as go
+import matplotlib.pyplot as plt
+import matplotlib.gridspec as gridspec
+import seaborn as sns
 import scipy
-
 
 pd.set_option('display.max_columns', None)
 pd.set_option('display.width', 1000)
 pd.set_option('display.max_colwidth', None)
-
 
 class EDA:
     """
@@ -55,7 +53,6 @@ class EDA:
         self.cat_cols, self.num_cols, self.num_but_cat, self.cat_but_car = self.get_columns_types()
         self.num_summary_df = None
         print("Dataframe and column types have been successfully updated.")
-
 
     def check_dataframe(self, n=5):
 
@@ -162,12 +159,12 @@ class EDA:
         else:
             raise ValueError('! num_cols is empty')
 
-    def check_num(self, width_for_graph=1308, height_for_graph=500):
+    def check_num(self, plot=False, width_for_graph=15, height_for_graph=5):
 
         """
         Displays visual diagnostics and normality test results for each numerical column.
 
-        For each column, generates a combined plot consisting of a Q-Q plot,
+        For each column, optionally generates a combined plot consisting of a Q-Q plot,
         histogram, and box plot. Runs Shapiro-Wilk test for n <= 2500 or
         D'Agostino K² test for n > 2500, and reports the p-value alongside
         the test conclusion.
@@ -178,10 +175,12 @@ class EDA:
 
         Parameters
         ----------
+        plot : bool, optional
+            If True, displays Q-Q plot, histogram, and box plot for each column (default: False).
         width_for_graph : int, optional
-            Width of each plot in pixels (default: 1308).
+            Width of each figure in inches (default: 15).
         height_for_graph : int, optional
-            Height of each plot in pixels (default: 500).
+            Height of each figure in inches (default: 5).
 
         Returns
         -------
@@ -193,6 +192,9 @@ class EDA:
         non_normals = eda.check_num()
         # Visually inspect the plots, then:
         eda.num_summary(result_dict={'age': 'Normal', 'salary': 'Non-normal'})
+
+        # To enable plots:
+        non_normals = eda.check_num(plot=True)
         """
 
         if self.num_cols:
@@ -202,23 +204,42 @@ class EDA:
             result = []
             for col in self.num_cols:
                 data = self.dataframe[col].dropna()
-                fig_combined = make_subplots(rows=2, cols=2, subplot_titles=['Q-Q Plot', 'Histogram', '', 'Box Plot'],
-                                             row_heights=[0.7, 0.3],
-                                             specs=[[{"rowspan": 2}, {}], [None, {}]])
-                (osm, osr), (slope, intercept, r) = scipy.stats.probplot(data)
-                fig_combined.add_trace(go.Scatter(x=osm, y=osr, mode='markers',
-                                                  marker=dict(color='#4682B4', size=5, opacity=0.7),
-                                                  name='Sample'), row=1, col=1)
-                fig_combined.add_trace(go.Scatter(x=osm, y=slope * np.array(osm) + intercept,
-                                                  mode='lines', line=dict(color='red', width=2),
-                                                  name='Normal Reference'), row=1, col=1)
-                fig_combined.update_xaxes(title_text='Theoretical Quantiles', row=1, col=1)
-                fig_combined.update_yaxes(title_text=f'{col} (Sample Quantiles)', row=1, col=1)
-                fig_combined.add_trace(go.Histogram(x=data, opacity=0.7, marker_color='#4682B4'), row=1, col=2)
-                fig_combined.add_trace(go.Box(x=data, marker_color='#4682B4'), row=2, col=2)
-                fig_combined.update_layout(title_text=f'{col}', title_x=0.5, width=width_for_graph,
-                                           height=height_for_graph)
-                fig_combined.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+                if plot:
+                    fig, axes = plt.subplots(1, 3, figsize=(width_for_graph, height_for_graph))
+                    fig.patch.set_facecolor('white')
+                    for ax in axes:
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                    fig.suptitle(col, fontsize=14, fontweight='bold')
+
+                    (osm, osr), (slope, intercept, r) = scipy.stats.probplot(data)
+                    axes[0].scatter(osm, osr, color='#4682B4', s=15, alpha=0.7)
+                    axes[0].plot(osm, slope * np.array(osm) + intercept, color='red', linewidth=2)
+                    axes[0].set_title('Q-Q Plot')
+                    axes[0].set_xlabel('Theoretical Quantiles')
+                    axes[0].set_ylabel(f'{col} (Sample Quantiles)')
+
+                    axes[1].hist(data, bins='auto', color='#4682B4', alpha=0.7, edgecolor='white')
+                    axes[1].set_title('Histogram')
+                    axes[1].set_xlabel(col)
+                    axes[1].set_ylabel('Frequency')
+
+                    axes[2].boxplot(data, vert=False, patch_artist=True,
+                                    boxprops=dict(facecolor='#4682B4', alpha=0.7),
+                                    medianprops=dict(color='red', linewidth=2),
+                                    whiskerprops=dict(color='#4682B4'),
+                                    capprops=dict(color='#4682B4'),
+                                    flierprops=dict(marker='o', color='#4682B4', alpha=0.5))
+                    axes[2].set_title('Box Plot')
+                    axes[2].set_xlabel(col)
+                    axes[2].set_yticks([])
+
+                    plt.tight_layout()
+                    plt.show()
+
                 n = len(data)
                 if n <= 2500:
                     test_stat, p_value = scipy.stats.shapiro(data)
@@ -371,18 +392,20 @@ class EDA:
         else:
             raise ValueError('! num_cols is empty')
 
-    def cat_summary(self, width_for_graph=1308, height_for_graph=500):
+    def cat_summary(self, plot=False, width_for_graph=13, height_for_graph=5):
 
         """
         Prints value counts and ratios for each categorical column
-        and displays a bar chart.
+        and optionally displays a bar chart.
 
         Parameters
         ----------
+        plot : bool, optional
+            If True, displays a bar chart for each categorical column (default: False).
         width_for_graph : int, optional
-            Width of the plot in pixels (default: 1308).
+            Width of the figure in inches (default: 13).
         height_for_graph : int, optional
-            Height of the plot in pixels (default: 500).
+            Height of the figure in inches (default: 5).
         """
 
         if self.cat_cols:
@@ -395,21 +418,35 @@ class EDA:
                     'Ratio': 100 * self.dataframe[col].value_counts() / len(self.dataframe)})
                 print(f"\nColumn: {col}")
                 print(val_c)
-                fig = px.bar(
-                    val_c,
-                    x=val_c.index,
-                    y='Count',
-                    text='Count',
-                    labels={'x': col, 'Count': 'Count'},
-                    title=f'{col}')
-                fig.update_layout(width=width_for_graph, height=height_for_graph, title_x=0.5)
-                fig.update_traces(marker_color='#2A9D8F', textposition='auto')
-                fig.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+                if plot:
+                    fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                    fig.patch.set_facecolor('white')
+                    ax.set_facecolor('white')
+                    ax.grid(False)
+                    for spine in ax.spines.values():
+                        spine.set_edgecolor('#cccccc')
+
+                    order = self.dataframe[col].value_counts().index
+                    bars = ax.bar(order, self.dataframe[col].value_counts()[order],
+                                  color='#2A9D8F', alpha=0.85, edgecolor='white')
+                    for bar in bars:
+                        ax.text(bar.get_x() + bar.get_width() / 2,
+                                bar.get_height() + max(self.dataframe[col].value_counts()) * 0.01,
+                                str(int(bar.get_height())),
+                                ha='center', va='bottom', fontsize=10)
+                    ax.set_title(col, fontsize=13, fontweight='bold')
+                    ax.set_xlabel(col)
+                    ax.set_ylabel('Count')
+                    plt.xticks(rotation=45, ha='right')
+                    plt.tight_layout()
+                    plt.show()
+
             print(self.line)
         else:
             raise ValueError('! cat_cols is empty')
 
-    def target_summary_with_cat(self, width_for_graph=1308, height_for_graph=500):
+    def target_summary_with_cat(self, plot=False, width_for_graph=13, height_for_graph=5):
 
         """
         Analyzes the relationship between the target column and categorical columns.
@@ -420,10 +457,12 @@ class EDA:
 
         Parameters
         ----------
+        plot : bool, optional
+            If True, displays charts for each categorical column (default: False).
         width_for_graph : int, optional
-            Width of the plot in pixels (default: 1308).
+            Width of the figure in inches (default: 13).
         height_for_graph : int, optional
-            Height of the plot in pixels (default: 500).
+            Height of the figure in inches (default: 5).
         """
 
         if self.cat_cols:
@@ -432,42 +471,50 @@ class EDA:
             print(self.line)
             if self.target_col in self.cat_cols:
                 cols_to_analyze = [col for col in self.cat_cols if col != self.target_col]
+                teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8', '#9b5de5']
                 for col in cols_to_analyze:
                     ct = pd.crosstab(self.dataframe[self.target_col].astype(str), self.dataframe[col])
                     ct_pct = pd.crosstab(self.dataframe[self.target_col].astype(str), self.dataframe[col],
                                          normalize='index') * 100
                     chi2, p, dof, expected = scipy.stats.chi2_contingency(ct)
-                    fig_combined = make_subplots(rows=1, cols=2,
-                                                 subplot_titles=['Countplot', "Crosstab Heatmap Percentage"],
-                                                 horizontal_spacing=0.15)
-                    teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8',
-                                    '#9b5de5']
-                    fig = px.histogram(self.dataframe, x=self.target_col, color=col, barmode='group',
-                                       color_discrete_sequence=teal_palette)
-                    for trace in fig.data:
-                        fig_combined.add_trace(trace, row=1, col=1)
-                    fig_combined.add_trace(
-                        go.Heatmap(
-                            z=ct_pct.round(1).values,
-                            x=ct_pct.columns.tolist(),
-                            y=ct_pct.index.tolist(),
-                            colorscale='Teal',
-                            zmin=0,
-                            zmax=100,
-                            text=ct_pct.round(1).values,
-                            texttemplate='%{text:.1f}%',
-                            showscale=True,
-                            colorbar=dict(x=1.01, xanchor='left', y=0, yanchor='bottom', thickness=15, len=0.9)), row=1,
-                        col=2)
-                    fig_combined.update_layout(
-                        title_text=f'Relationship: {self.target_col} vs {col}',
-                        title_x=0.5,
-                        width=width_for_graph,
-                        height=height_for_graph,
-                        barmode='group',
-                        margin=dict(r=120, l=120),
-                        legend=dict(x=-0.12, xanchor='left', y=0, yanchor='bottom'))
-                    fig_combined.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+                    if plot:
+                        fig, axes = plt.subplots(1, 2, figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        for ax in axes:
+                            ax.set_facecolor('white')
+                            ax.grid(False)
+                            for spine in ax.spines.values():
+                                spine.set_edgecolor('#cccccc')
+                        fig.suptitle(f'Relationship: {self.target_col} vs {col}', fontsize=13, fontweight='bold')
+
+                        target_cats = self.dataframe[self.target_col].unique()
+                        col_cats = self.dataframe[col].unique()
+                        x = np.arange(len(target_cats))
+                        width = 0.8 / len(col_cats)
+                        for i, cat in enumerate(col_cats):
+                            counts = [self.dataframe[(self.dataframe[self.target_col] == t) & (self.dataframe[col] == cat)].shape[0]
+                                      for t in target_cats]
+                            axes[0].bar(x + i * width, counts, width=width,
+                                        label=str(cat), color=teal_palette[i % len(teal_palette)], alpha=0.85)
+                        axes[0].set_xticks(x + width * (len(col_cats) - 1) / 2)
+                        axes[0].set_xticklabels([str(t) for t in target_cats], rotation=45, ha='right')
+                        axes[0].set_title('Countplot')
+                        axes[0].set_xlabel(self.target_col)
+                        axes[0].set_ylabel('Count')
+                        axes[0].legend(title=col)
+
+                        sns.heatmap(ct_pct.round(1), annot=True, fmt='.1f', cmap='YlGnBu',
+                                    vmin=0, vmax=100, ax=axes[1],
+                                    linewidths=0.5, linecolor='white',
+                                    annot_kws={'size': 10})
+                        axes[1].set_title('Crosstab Heatmap Percentage')
+                        axes[1].set_xlabel(col)
+                        axes[1].set_ylabel(self.target_col)
+
+                        plt.tight_layout()
+                        plt.show()
+
                     print(f"\n{self.line}")
                     print(' Chi-Square Test '.center(170))
                     print(self.line)
@@ -508,7 +555,7 @@ class EDA:
             elif self.target_col in self.num_cols:
                 for col in self.cat_cols:
                     df_pivot = self.dataframe.pivot_table(index=col, values=self.target_col,
-                                                          aggfunc=['mean', 'median', 'count'])
+                                                          aggfunc=['mean', 'median', 'count'],observed=False)
                     print(df_pivot)
                     groups = []
                     normality_for_group=[]
@@ -526,10 +573,28 @@ class EDA:
                     if unique_count < 2:
                         print(f"Skipping {col}: Not enough groups for comparison.")
                         continue
-                    fig = px.box(self.dataframe, x=col, y=self.target_col, color=col,
-                                 title=f'{self.target_col} by {col}')
-                    fig.update_layout(width=width_for_graph, height=height_for_graph, title_x=0.5)
-                    fig.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+                    if plot:
+                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                        teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8', '#9b5de5']
+                        categories = self.dataframe[col].unique()
+                        palette = {cat: teal_palette[i % len(teal_palette)] for i, cat in enumerate(categories)}
+                        sns.boxplot(data=self.dataframe, x=col, y=self.target_col,
+                                    palette=palette, ax=ax,hue=col,
+                                    boxprops=dict(alpha=0.85),
+                                    medianprops=dict(color='red', linewidth=2))
+                        ax.set_title(f'{self.target_col} by {col}', fontsize=13, fontweight='bold')
+                        ax.set_xlabel(col)
+                        ax.set_ylabel(self.target_col)
+                        plt.xticks(rotation=45, ha='right')
+                        plt.tight_layout()
+                        plt.show()
+
                     print(f"\n{self.line}")
                     if unique_count == 2:
                         if is_normal and min(len(g) for g in groups) > 30:
@@ -563,7 +628,7 @@ class EDA:
         else:
             raise ValueError('! cat_cols is empty')
 
-    def target_summary_with_num(self, width_for_graph=1308, height_for_graph=500):
+    def target_summary_with_num(self, plot=False, width_for_graph=13, height_for_graph=5):
 
         """
         Analyzes the relationship between the target column and numerical columns.
@@ -575,10 +640,12 @@ class EDA:
 
         Parameters
         ----------
+        plot : bool, optional
+            If True, displays charts for each numerical column (default: False).
         width_for_graph : int, optional
-            Width of the plot in pixels (default: 1308).
+            Width of the figure in inches (default: 13).
         height_for_graph : int, optional
-            Height of the plot in pixels (default: 500).
+            Height of the figure in inches (default: 5).
         """
 
         if self.num_cols:
@@ -588,7 +655,7 @@ class EDA:
             if self.target_col in self.cat_cols:
                 for col in self.num_cols:
                     df_pivot = self.dataframe.pivot_table(index=self.target_col, values=col,
-                                                          aggfunc=['mean', 'median', 'count'])
+                                                          aggfunc=['mean', 'median', 'count'],observed=False)
                     print(df_pivot)
                     groups = []
                     normality_for_group = []
@@ -606,10 +673,28 @@ class EDA:
                     if unique_count < 2:
                         print(f"Skipping {col}: Not enough groups for comparison.")
                         continue
-                    fig = px.box(self.dataframe, x=self.target_col, y=col, color=self.target_col,
-                                 title=f'{col} by {self.target_col}')
-                    fig.update_layout(width=width_for_graph, height=height_for_graph, title_x=0.5)
-                    fig.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+                    if plot:
+                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                        teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8', '#9b5de5']
+                        categories = self.dataframe[self.target_col].unique()
+                        palette = {cat: teal_palette[i % len(teal_palette)] for i, cat in enumerate(categories)}
+                        sns.boxplot(data=self.dataframe, x=self.target_col, y=col,
+                                    palette=palette, ax=ax,
+                                    boxprops=dict(alpha=0.85),hue=self.target_col,
+                                    medianprops=dict(color='red', linewidth=2))
+                        ax.set_title(f'{col} by {self.target_col}', fontsize=13, fontweight='bold')
+                        ax.set_xlabel(self.target_col)
+                        ax.set_ylabel(col)
+                        plt.xticks(rotation=45, ha='right')
+                        plt.tight_layout()
+                        plt.show()
+
                     print(f"\n{self.line}")
                     if unique_count == 2:
                         if is_normal and min(len(g) for g in groups) > 30:
@@ -678,17 +763,31 @@ class EDA:
                         strength = "Very strong"
                     direction = 'positive' if corr_value > 0 else 'negative'
                     print(f'Strength: {strength} {direction} correlation\n')
-                    fig = px.scatter(self.dataframe, x=self.target_col, y=col, trendline='ols',
-                                     title=f'{self.target_col} vs {col} | Method: {method} ρ={corr_value:.3f}',
-                                     color_discrete_sequence=['#4682B4'], opacity=0.5)
-                    fig.update_traces(line=dict(color="red", width=3), selector=dict(mode="lines"))
-                    fig.update_layout(title_x=0.5, width=width_for_graph, height=height_for_graph)
-                    fig.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+                    if plot:
+                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                        ax.scatter(self.dataframe[self.target_col], self.dataframe[col],
+                                   color='#4682B4', alpha=0.5, s=20)
+                        m, b = np.polyfit(self.dataframe[self.target_col], self.dataframe[col], 1)
+                        x_line = np.linspace(self.dataframe[self.target_col].min(), self.dataframe[self.target_col].max(), 200)
+                        ax.plot(x_line, m * x_line + b, color='red', linewidth=3)
+                        ax.set_title(f'{self.target_col} vs {col} | Method: {method} ρ={corr_value:.3f}',
+                                     fontsize=13, fontweight='bold')
+                        ax.set_xlabel(self.target_col)
+                        ax.set_ylabel(col)
+                        plt.tight_layout()
+                        plt.show()
+
                     print(self.line)
         else:
             raise ValueError('! num_cols is empty ')
 
-    def correlation_heatmap(self, method="spearman", width_for_graph=900, height_for_graph=900):
+    def correlation_heatmap(self, method="spearman",  width_for_graph=9, height_for_graph=9):
 
         """
         Displays a correlation heatmap for all numerical columns.
@@ -697,25 +796,31 @@ class EDA:
         ----------
         method : str, optional
             Correlation method: 'spearman', 'pearson', or 'kendall' (default: 'spearman').
+        plot : bool, optional
+            If True, displays the correlation heatmap (default: False).
         width_for_graph : int, optional
-            Width of the plot in pixels (default: 900).
+            Width of the figure in inches (default: 9).
         height_for_graph : int, optional
-            Height of the plot in pixels (default: 900).
+            Height of the figure in inches (default: 9).
         """
 
         if self.num_cols:
             corr = self.dataframe[self.num_cols].corr(method=method)
-            fig = px.imshow(
-                corr,
-                text_auto=True,
-                aspect="equal",
-                color_continuous_scale="RdBu_r",
-                zmin=-1,
-                zmax=1,
-                width=width_for_graph,
-                height=height_for_graph,
-                title=f"{method.capitalize()} Correlation Heatmap")
-            fig.update_layout(xaxis_tickangle=45, title_x=0.5)
-            fig.show(renderer="png", width=width_for_graph, height=height_for_graph, scale=2)
+
+            
+            fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+            fig.patch.set_facecolor('white')
+            ax.set_facecolor('white')
+            ax.grid(False)
+            sns.heatmap(corr, annot=True, fmt='.2f', cmap='RdBu_r',
+                            vmin=-1, vmax=1, ax=ax,
+                            linewidths=0.5, linecolor='white',
+                            annot_kws={'size': 9},
+                            square=True)
+            ax.set_title(f'{method.capitalize()} Correlation Heatmap', fontsize=13, fontweight='bold')
+            plt.xticks(rotation=45, ha='right')
+            plt.yticks(rotation=0)
+            plt.tight_layout()
+            plt.show()
         else:
             raise ValueError('! num_cols is empty')
