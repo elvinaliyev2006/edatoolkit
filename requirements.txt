@@ -1,7 +1,6 @@
 pandas
 numpy
-plotly
+matplotlib
+seaborn
 scipy
-kaleido
-nbformat
 statsmodels
