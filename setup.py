@@ -11,11 +11,10 @@ setup(
     install_requires=[
         "pandas",
         "numpy",
-        "plotly",
+        "seaborn",
+        "matplotlib"
         "scipy",
-        "statsmodels",
-        "nbformat",
-        "kaleido"
+        "statsmodels"
     ],
     python_requires=">=3.7",
 )
