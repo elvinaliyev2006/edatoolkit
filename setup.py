@@ -12,7 +12,7 @@ setup(
         "pandas",
         "numpy",
         "seaborn",
-        "matplotlib"
+        "matplotlib",
         "scipy",
         "statsmodels"
     ],

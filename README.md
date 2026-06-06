@@ -120,7 +120,8 @@ pip install -e .
 |---------|---------|
 | `pandas` | DataFrame operations |
 | `numpy` | Numerical computations |
-| `plotly` | Interactive visualizations |
+| `matplotlib` | Visualizations |
+| `seaborn` | Visualizations |
 | `scipy` | Statistical tests |
 | `statsmodels` | Advanced statistical operations |
 | `kaleido` | Static image export for Plotly |
@@ -189,8 +190,8 @@ eda.correlation_heatmap(method="spearman")
 
 | Parameter | Type | Description | Default |
 |-----------|------|-------------|---------|
-| `width_for_graph` | `int` | Plot width in pixels | `1308` or `900` |
-| `height_for_graph` | `int` | Plot height in pixels | `500` or `900` |
+| `width_for_graph` | `int` | Plot width  | 
+| `height_for_graph` | `int` | Plot height  | 
 
 ### `check_outlier()`
 
