@@ -13,21 +13,33 @@ class CategoricalAnalyzer:
 
 
     def cat_summary(self, dataframe, cat_cols, plot=False, width_for_graph=13, height_for_graph=5):
-
         """
-        Prints value counts and ratios for each categorical column
-        and optionally displays a bar chart.
+        Prints value counts and percentage ratios for every categorical column,
+        and optionally renders a bar chart for each one.
 
         Parameters
         ----------
+        dataframe : pd.DataFrame
+            The dataset containing the categorical columns.
+        cat_cols : list of str
+            List of categorical column names to summarize.
         plot : bool, optional
-            If True, displays a bar chart for each categorical column (default: False).
+            If True, displays a labelled bar chart for each column (default: False).
         width_for_graph : int, optional
-            Width of the figure in inches (default: 13).
+            Width of each figure in inches (default: 13).
         height_for_graph : int, optional
-            Height of the figure in inches (default: 5).
-        """
+            Height of each figure in inches (default: 5).
 
+        Returns
+        -------
+        None
+            All output is printed to stdout; charts are displayed inline.
+
+        Raises
+        ------
+        ValueError
+            If cat_cols is empty.
+        """
         if cat_cols:
             print(f'\n{self.line}')
             print(' Categorical Variable Summary '.center(170))

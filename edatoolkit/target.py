@@ -19,24 +19,57 @@ class TargetAnalyzer:
 
     def target_summary_with_cat(self, dataframe, cat_cols, num_cols, target_col, alpha=0.05, plot=False, width_for_graph=13,
                                 height_for_graph=5):
-
         """
-        Analyzes the relationship between the target column and categorical columns.
-        - If target is categorical: Chi-Square test and Cramer's V with heatmap visualization.
-        - If target is numerical: ANOVA / Kruskal-Wallis / T-test / Mann-Whitney U test
-        with box plot visualization. Normality is assessed independently per group
-        using Shapiro-Wilk (n ≤ 2500) or D'Agostino K² (n > 2500).
+        Analyzes the relationship between the target column and each categorical column.
+
+        Behavior depends on the target column type:
+
+        Target is categorical:
+            - Computes a crosstab with row-percentage normalization.
+            - Runs a Chi-Square test of independence.
+            - Calculates Cramer's V to quantify association strength.
+            - Optionally displays a grouped bar chart and a percentage heatmap.
+
+        Target is numerical:
+            - Computes mean, median, and count of the target per category.
+            - Assesses within-group normality using Shapiro-Wilk (n ≤ 2500)
+            or D'Agostino K² (n > 2500).
+            - Selects the appropriate significance test automatically:
+                2 groups, normal  → Welch's t-test
+                2 groups, non-normal → Mann-Whitney U
+                3+ groups, normal + equal variance → One-way ANOVA
+                3+ groups, otherwise → Kruskal-Wallis
+            - Optionally displays a box plot per categorical column.
 
         Parameters
         ----------
+        dataframe : pd.DataFrame
+            The dataset to analyze.
+        cat_cols : list of str
+            Categorical column names to compare against the target.
+        num_cols : list of str
+            Numerical column names (used to determine target column type).
+        target_col : str
+            Name of the target column.
+        alpha : float, optional
+            Significance level for all hypothesis tests (default: 0.05).
         plot : bool, optional
             If True, displays charts for each categorical column (default: False).
         width_for_graph : int, optional
-            Width of the figure in inches (default: 13).
+            Width of each figure in inches (default: 13).
         height_for_graph : int, optional
-            Height of the figure in inches (default: 5).
-        """
+            Height of each figure in inches (default: 5).
 
+        Returns
+        -------
+        None
+            All output is printed to stdout; charts are displayed inline.
+
+        Raises
+        ------
+        ValueError
+            If cat_cols is empty.
+        """
         if cat_cols:
             print(f'\n{self.line}')
             print(' Target Analysis with Categorical Variables '.center(170))
@@ -170,25 +203,62 @@ class TargetAnalyzer:
 
 
     def target_summary_with_num(self,dataframe, num_cols, cat_cols, target_col, num_summary_df, alpha=0.05, plot=False, width_for_graph=13, height_for_graph=5):
-
         """
-        Analyzes the relationship between the target column and numerical columns.
-        - If target is categorical: T-test / Mann-Whitney U / ANOVA / Kruskal-Wallis
-        with box plot visualization. Normality is assessed independently per group
-        using Shapiro-Wilk (n ≤ 2500) or D'Agostino K² (n > 2500).
-        - If target is numerical: Pearson or Spearman correlation with scatter plot.
-        Requires num_summary() to be run first to determine the correlation method.
+        Analyzes the relationship between the target column and each numerical column.
+
+        Behavior depends on the target column type:
+
+        Target is categorical:
+            - Computes mean, median, and count of each numerical column per target class.
+            - Assesses per-group normality using Shapiro-Wilk (n ≤ 2500)
+            or D'Agostino K² (n > 2500).
+            - Selects the appropriate significance test automatically (same logic as
+            target_summary_with_cat for the numerical-target case).
+            - Optionally displays a box plot for each numerical column.
+
+        Target is numerical:
+            - Requires num_summary_df (run num_summary() first).
+            - Selects Pearson correlation if both columns are normal,
+            otherwise uses Spearman correlation.
+            - Reports the correlation coefficient (ρ), p-value, and a
+            qualitative strength label (Negligible / Weak / Moderate /
+            Strong / Very strong) with direction (positive / negative).
+            - Optionally displays a scatter plot with a fitted regression line.
 
         Parameters
         ----------
+        dataframe : pd.DataFrame
+            The dataset to analyze.
+        num_cols : list of str
+            Numerical column names to compare against the target.
+        cat_cols : list of str
+            Categorical column names (used to determine target column type).
+        target_col : str
+            Name of the target column.
+        num_summary_df : pd.DataFrame or None
+            Normality summary from num_summary(). Required when the target is
+            numerical; pass None otherwise.
+        alpha : float, optional
+            Significance level for all hypothesis tests (default: 0.05).
         plot : bool, optional
             If True, displays charts for each numerical column (default: False).
         width_for_graph : int, optional
-            Width of the figure in inches (default: 13).
+            Width of each figure in inches (default: 13).
         height_for_graph : int, optional
-            Height of the figure in inches (default: 5).
-        """
+            Height of each figure in inches (default: 5).
 
+        Returns
+        -------
+        None
+            All output is printed to stdout; charts are displayed inline.
+
+        Raises
+        ------
+        ValueError
+            If num_cols is empty.
+        RuntimeError
+            If target is numerical and num_summary_df is None.
+        """
         if num_cols:
             print(f'\n{self.line}')
             print(' Target Analysis with Numerical Variables '.center(170))

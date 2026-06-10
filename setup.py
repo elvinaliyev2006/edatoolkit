@@ -13,8 +13,7 @@ setup(
         "numpy",
         "seaborn",
         "matplotlib",
-        "scipy",
-        "statsmodels"
+        "scipy"
     ],
     python_requires=">=3.7",
 )

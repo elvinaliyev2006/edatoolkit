@@ -13,21 +13,27 @@ class Inspector:
 
     def get_columns_types(self,dataframe,car_th=20,cat_th=10):
         """
-        Sütunları tip əsasında 4 qrupa ayırır.
+        Classifies all dataframe columns into four groups based on their data type and cardinality.
 
         Parameters
         ----------
         dataframe : pd.DataFrame
-            Analiz ediləcək dataset.
+            The dataset to be analyzed.
         car_th : int, optional
-            Kateqorial sütun üçün yüksək kardinallik həddi (default: 20).
+            Cardinality threshold above which an object/category column is treated as
+            high-cardinality (cardinal) rather than categorical (default: 20).
         cat_th : int, optional
-            Rəqəmsal sütunu kateqorial saymaq üçün unikal dəyər həddi (default: 10).
+            Unique-value threshold below which a numeric column is treated as
+            categorical rather than continuous (default: 10).
 
         Returns
         -------
-        tuple
-            (cat_cols, num_cols, num_but_cat, cat_but_car)
+        tuple : (cat_cols, num_cols, num_but_cat, cat_but_car)
+            cat_cols     : list of str — categorical columns (including low-cardinality numerics).
+            num_cols     : list of str — continuous numeric columns.
+            num_but_cat  : list of str — numeric columns that look categorical (few unique values).
+            cat_but_car  : list of str — object/category columns with too many unique values
+                        to be treated as categorical (high-cardinality).
         """
         cat_cols = [col for col in dataframe.columns if
                     str(dataframe[col].dtype) in ['object', 'bool', 'category','str', 'string']]
@@ -45,17 +51,22 @@ class Inspector:
         return cat_cols, num_cols, num_but_cat, cat_but_car
 
     def check_dataframe(self,dataframe, n=5):
-
         """
-        Prints a general overview of the dataframe including head, sample, tail,
-        shape, info, missing values, and duplicate counts.
+        Prints a general overview of the dataframe: head, random sample, tail,
+        shape, dtypes/info, missing-value ratios, and duplicate row count.
 
         Parameters
         ----------
+        dataframe : pd.DataFrame
+            The dataset to inspect.
         n : int, optional
-            Number of rows to display for head/sample/tail (default: 5).
-        """
+            Number of rows shown for head, sample, and tail sections (default: 5).
 
+        Returns
+        -------
+        None
+            All output is printed to stdout.
+        """
         print(f'\n{self.line}')
         print(' Head '.center(170))
         print(self.line)

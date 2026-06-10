@@ -16,12 +16,30 @@ class NormalityAnalyzer:
     
 
     def descriptive_analysis(self,dataframe,num_cols):
-
         """
-        Prints a detailed descriptive statistics table for all numerical columns,
-        including percentiles, median, coefficient of variation, skewness, and kurtosis.
-        """
+        Prints an extended descriptive statistics table for all numerical columns.
 
+        In addition to the standard describe() output, the table includes the median,
+        coefficient of variation (CV%), skewness, and kurtosis for each column.
+        Percentiles reported: 1%, 5%, 25%, 50%, 75%, 95%, 99%.
+
+        Parameters
+        ----------
+        dataframe : pd.DataFrame
+            The dataset containing the columns to summarize.
+        num_cols : list of str
+            List of numerical column names to include in the analysis.
+
+        Returns
+        -------
+        None
+            Results are printed to stdout as a transposed DataFrame.
+
+        Raises
+        ------
+        ValueError
+            If num_cols is empty.
+        """
         if num_cols:
             df_desc = dataframe[num_cols].describe([0.01, 0.05, 0.25, 0.5, 0.75, 0.95, 0.99]).T
             cv = (dataframe[num_cols].std() / dataframe[num_cols].mean().replace(0,
@@ -52,23 +70,30 @@ class NormalityAnalyzer:
         
 
     def check_num(self, dataframe, num_cols, alpha=0.05, plot=False, width_for_graph=15, height_for_graph=5):
-
         """
-        Displays visual diagnostics and normality test results for each numerical column.
+        Runs normality diagnostics for each numerical column and optionally
+        displays visual plots.
 
-        For each column, optionally generates a combined plot consisting of a Q-Q plot,
-        histogram, and box plot. Runs Shapiro-Wilk test for n <= 2500 or
-        D'Agostino K² test for n > 2500, and reports the p-value alongside
-        the test conclusion.
+        For each column the method:
+        - Optionally renders a Q-Q plot, histogram, and box plot side-by-side.
+        - Applies Shapiro-Wilk test for n ≤ 2500, or D'Agostino K² test for n > 2500.
+        - Prints the test statistic, p-value, and a plain-language conclusion.
 
-        Columns flagged as non-normal by the test should be verified visually
-        before making a final decision. Use the returned list to construct the
-        normality dictionary for num_summary().
+        The statistical result should always be cross-checked against the visual plots
+        before a final normality decision is made. Use the returned list together with
+        num_summary() to record overrides.
 
         Parameters
         ----------
+        dataframe : pd.DataFrame
+            The dataset to analyze.
+        num_cols : list of str
+            List of numerical column names to test.
+        alpha : float, optional
+            Significance level for the normality test (default: 0.05).
         plot : bool, optional
-            If True, displays Q-Q plot, histogram, and box plot for each column (default: False).
+            If True, displays Q-Q plot, histogram, and box plot for each column
+            (default: False).
         width_for_graph : int, optional
             Width of each figure in inches (default: 15).
         height_for_graph : int, optional
@@ -76,17 +101,19 @@ class NormalityAnalyzer:
 
         Returns
         -------
-        list
-            List of column names flagged as non-normal by the statistical test.
+        list of str
+            Column names that the statistical test flagged as non-normal.
+            Columns that passed the test are not included, even if visually suspect.
+
+        Raises
+        ------
+        ValueError
+            If num_cols is empty.
 
         Example
         -------
-        non_normals = eda.check_num()
-        # Visually inspect the plots, then:
-        eda.num_summary(result_dict={'age': 'Normal', 'salary': 'Non-normal'})
-
-        # To enable plots:
         non_normals = eda.check_num(plot=True)
+        eda.num_summary(result_dict={'age': 'Normal', 'salary': 'Non-normal'})
         """
 
         if num_cols:
@@ -167,39 +194,38 @@ class NormalityAnalyzer:
         
 
     def num_summary(self,num_cols, result_dict):
-
         """
-         Creates the normality summary DataFrame used across all analysis methods.
+         Builds the normality summary DataFrame that downstream methods rely on
+        (outlier detection, target correlation method selection).
 
-         Accepts a dictionary of column-level normality decisions and maps them
-         to all numerical columns. Columns not present in result_dict are assumed
-         to be normally distributed.
+        Columns not present in result_dict are assumed to be normally distributed.
+        Always run check_num() first to identify non-normal columns before
+        constructing result_dict.
 
-         Run check_num() first to visually inspect each column and identify
-         non-normal distributions before constructing result_dict.
+        Parameters
+        ----------
+        num_cols : list of str
+            Full list of numerical column names in the dataset.
+        result_dict : dict
+            Mapping of {column_name: 'Normal' | 'Non-normal'} for columns whose
+            normality you wish to specify explicitly. Any column not listed here
+            defaults to 'Normal'.
 
-         Parameters
-         ----------
-         result_dict : dict
-             Dictionary mapping column names to normality decisions.
-             Accepted values: 'Normal' or 'Non-normal'.
-             Columns not included default to 'Normal'.
+        Returns
+        -------
+        pd.DataFrame
+            A two-column DataFrame with columns ['Column', 'Result'], where Result
+            is either 'Normal' or 'Non-normal' for each entry in num_cols.
 
-         Returns
-         -------
-         pd.DataFrame
-             DataFrame with columns ['Column', 'Result'] stored as self.num_summary_df.
-
-         Example
-         -------
-         eda.check_num()
-         eda.num_summary(result_dict={
-             'age'    : 'Normal',
-             'salary' : 'Non-normal',
-             'height' : 'Non-normal'
-         })
+        Example
+        -------
+        eda.check_num()
+        eda.num_summary(result_dict={
+            'age'    : 'Normal',
+            'salary' : 'Non-normal',
+            'height' : 'Non-normal'
+        })
          """
-
         result_df = pd.DataFrame({
             'Column': num_cols,
             'Result': [result_dict.get(col, 'Normal') for col in num_cols]

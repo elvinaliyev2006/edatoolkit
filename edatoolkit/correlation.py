@@ -10,22 +10,32 @@ class Correlation:
 
 
     def correlation_heatmap(self, dataframe, num_cols, method="spearman",  width_for_graph=9, height_for_graph=9):
-
             """
-            Displays a correlation heatmap for all numerical columns.
+            Displays an annotated correlation heatmap for all numerical columns.
 
             Parameters
             ----------
+            dataframe : pd.DataFrame
+                The dataset containing the numerical columns.
+            num_cols : list of str
+                Numerical columns to include in the correlation matrix.
             method : str, optional
                 Correlation method: 'spearman', 'pearson', or 'kendall' (default: 'spearman').
-            plot : bool, optional
-                If True, displays the correlation heatmap (default: False).
             width_for_graph : int, optional
                 Width of the figure in inches (default: 9).
             height_for_graph : int, optional
                 Height of the figure in inches (default: 9).
-            """
 
+            Returns
+            -------
+            None
+                The heatmap is displayed inline.
+
+            Raises
+            ------
+            ValueError
+                If num_cols is empty.
+            """
             if num_cols:
                 corr = dataframe[num_cols].corr(method=method)
 
