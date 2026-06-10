@@ -158,6 +158,9 @@ pip install -e .
 | `matplotlib` | Static visualizations |
 | `seaborn` | Statistical plot styling |
 | `scipy` | Statistical tests |
+| `statsmodels` | Advanced statistical operations |
+| `kaleido` | Static image export for Plotly |
+| `nbformat` | Notebook rendering support |
 
 ```bash
 pip install -r requirements.txt
