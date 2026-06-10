@@ -280,15 +280,7 @@ normality.check_num(df, num_cols, plot=True)
 
 ---
 
-## 📌 Roadmap
 
-- [ ] Logging system
-- [ ] Exportable HTML / PDF reports
-- [ ] Feature engineering utilities
-- [ ] Sklearn-compatible pipeline integration
-- [ ] PyPI package release
-
----
 
 ## 📄 License
 
