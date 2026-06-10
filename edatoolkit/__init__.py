@@ -11,7 +11,7 @@ __all__ = [
     "Inspector",
     "NormalityAnalyzer",
     "OutlierAnalyzer",
-    "Categorical",
+    "CategoricalAnalyzer",
     "TargetAnalyzer",
     "Correlation"
 ]
