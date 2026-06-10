@@ -34,7 +34,8 @@ edatoolkit/
 │   └── assets/
 │       └── skeleton.gif
 ├── Examples/
-│   └── example.ipynb
+│   ├── example1.ipynb
+│   └──  example2.ipynb
 ├── setup.py
 ├── requirements.txt
 ├── README.md
