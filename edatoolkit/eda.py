@@ -121,7 +121,7 @@ class EDA:
         list of str
             Columns flagged as non-normal by the statistical test.
         """
-        self.normality.check_num(dataframe=self.dataframe,num_cols=self.num_cols,alpha=self.alpha,width_for_graph=width_for_graph,
+        return self.normality.check_num(dataframe=self.dataframe,num_cols=self.num_cols,alpha=self.alpha,width_for_graph=width_for_graph,
                                  height_for_graph=height_for_graph)
     
     def num_summary(self,result_dict):
@@ -166,6 +166,8 @@ class EDA:
         dict or tuple
             Outlier report, or (outlier_report, cleaned_df) if remove/cap is True.
         """
+        if self.num_summary_df is None:
+            raise RuntimeError("Run num_summary() first.")
         result=self.outliers.check_outlier(dataframe=self.dataframe,num_cols=self.num_cols,num_summary_df=self.num_summary_df,
                                            iqr_th=iqr_th,z_score_th=z_score_th,remove=remove,cap=cap)
         if isinstance(result, tuple):
