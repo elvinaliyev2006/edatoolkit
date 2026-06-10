@@ -13,7 +13,7 @@ The toolkit has been refactored into a **fully modular architecture**: each anal
 
 ## 🗺️ Architecture
 
-![edatoolkit modular architecture](edatoolkit/assets/skeleton.svg)
+![edatoolkit modular architecture](edatoolkit/assets/skeleton.sg)
 
 ---
 
