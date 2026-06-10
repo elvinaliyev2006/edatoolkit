@@ -1,0 +1,297 @@
+import pandas as pd
+import scipy
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+from .helpers import get_groups, select_group_test 
+
+
+pd.set_option('display.max_columns', None)
+pd.set_option('display.width', 1000)
+pd.set_option('display.max_colwidth', None)
+
+
+class TargetAnalyzer:
+
+    def __init__(self):
+
+        self.line = '─' * 170
+
+    def target_summary_with_cat(self, dataframe, cat_cols, num_cols, target_col, alpha=0.05, plot=False, width_for_graph=13,
+                                height_for_graph=5):
+
+        """
+        Analyzes the relationship between the target column and categorical columns.
+        - If target is categorical: Chi-Square test and Cramer's V with heatmap visualization.
+        - If target is numerical: ANOVA / Kruskal-Wallis / T-test / Mann-Whitney U test
+        with box plot visualization. Normality is assessed independently per group
+        using Shapiro-Wilk (n ≤ 2500) or D'Agostino K² (n > 2500).
+
+        Parameters
+        ----------
+        plot : bool, optional
+            If True, displays charts for each categorical column (default: False).
+        width_for_graph : int, optional
+            Width of the figure in inches (default: 13).
+        height_for_graph : int, optional
+            Height of the figure in inches (default: 5).
+        """
+
+        if cat_cols:
+            print(f'\n{self.line}')
+            print(' Target Analysis with Categorical Variables '.center(170))
+            print(self.line)
+            if target_col in cat_cols:
+                cols_to_analyze = [col for col in cat_cols if col != target_col]
+                teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8', '#9b5de5']
+                for col in cols_to_analyze:
+                    ct = pd.crosstab(dataframe[target_col].astype(str), dataframe[col])
+                    ct_pct = pd.crosstab(dataframe[target_col].astype(str), dataframe[col],
+                                         normalize='index') * 100
+                    chi2, p, dof, expected = scipy.stats.chi2_contingency(ct)
+
+                    if plot:
+                        fig, axes = plt.subplots(1, 2, figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        for ax in axes:
+                            ax.set_facecolor('white')
+                            ax.grid(False)
+                            for spine in ax.spines.values():
+                                spine.set_edgecolor('#cccccc')
+                        fig.suptitle(f'Relationship: {target_col} vs {col}', fontsize=13, fontweight='bold')
+
+                        target_cats = dataframe[target_col].unique()
+                        col_cats = dataframe[col].unique()
+                        x = np.arange(len(target_cats))
+                        width = 0.8 / len(col_cats)
+                        for i, cat in enumerate(col_cats):
+                            counts = [dataframe[
+                                          (dataframe[target_col] == t) & (dataframe[col] == cat)].shape[
+                                          0]
+                                      for t in target_cats]
+                            axes[0].bar(x + i * width, counts, width=width,
+                                        label=str(cat), color=teal_palette[i % len(teal_palette)], alpha=0.85)
+                        axes[0].set_xticks(x + width * (len(col_cats) - 1) / 2)
+                        axes[0].set_xticklabels([str(t) for t in target_cats], rotation=45, ha='right')
+                        axes[0].set_title('Countplot')
+                        axes[0].set_xlabel(target_col)
+                        axes[0].set_ylabel('Count')
+                        axes[0].legend(title=col)
+
+                        sns.heatmap(ct_pct.round(1), annot=True, fmt='.1f', cmap='YlGnBu',
+                                    vmin=0, vmax=100, ax=axes[1],
+                                    linewidths=0.5, linecolor='white',
+                                    annot_kws={'size': 10})
+                        axes[1].set_title('Crosstab Heatmap Percentage')
+                        axes[1].set_xlabel(col)
+                        axes[1].set_ylabel(target_col)
+
+                        plt.tight_layout()
+                        plt.show()
+
+                    print(f"\n{self.line}")
+                    print(' Chi-Square Test '.center(170))
+                    print(self.line)
+                    print(f"χ²      = {chi2:.4f}")
+                    print(f"p-value = {p:.6f}")
+                    print(f"df      = {dof}")
+                    print(f"\nExpected Values:")
+                    expected_df = pd.DataFrame(expected, index=ct.index, columns=ct.columns).round(1)
+                    print(expected_df, '\n')
+                    print('Result:')
+                    if p < alpha:
+                        print(
+                            f"\n→ H₀ REJECTED: There is a significant relationship between {target_col} and {col} (p < 0.05)")
+                    else:
+                        print("\n→ H₀ ACCEPTED: No statistically significant difference found")
+                    print(f"\n{self.line}")
+                    print(" Cramer's V ".center(170))
+                    print(self.line)
+                    n = ct.values.sum()
+                    min_dim = min(ct.shape) - 1
+                    if min_dim > 0:
+                        cramers_v = np.sqrt(chi2 / (n * min_dim))
+                    else:
+                        cramers_v = 0
+                    print(f"V = {cramers_v:.4f}")
+                    print('Result:')
+                    if cramers_v < 0.1:
+                        strength = "Very weak"
+                    elif cramers_v < 0.3:
+                        strength = "Weak-moderate"
+                    elif cramers_v < 0.5:
+                        strength = "Moderate-strong"
+                    else:
+                        strength = "Strong"
+                    print(f"\nAssociation strength: {strength}\n")
+                    print(self.line)
+
+            elif target_col in num_cols:
+                for col in cat_cols:
+                    df_pivot = dataframe.pivot_table(index=col, values=target_col,
+                                                          aggfunc=['mean', 'median', 'count'], observed=False)
+                    print(df_pivot)
+                    groups, normality_pvals = get_groups(dataframe, col, target_col)
+                    if len(groups) < 2:
+                        print(f"Skipping {col}: Not enough groups for comparison.")
+                        continue
+
+                    if plot:
+                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                        teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8',
+                                        '#9b5de5']
+                        categories = dataframe[col].unique()
+                        palette = {cat: teal_palette[i % len(teal_palette)] for i, cat in enumerate(categories)}
+                        sns.boxplot(data=dataframe, x=col, y=target_col,
+                                    palette=palette, ax=ax, hue=col,
+                                    boxprops=dict(alpha=0.85),
+                                    medianprops=dict(color='red', linewidth=2))
+                        ax.set_title(f'{target_col} by {col}', fontsize=13, fontweight='bold')
+                        ax.set_xlabel(col)
+                        ax.set_ylabel(target_col)
+                        plt.xticks(rotation=45, ha='right')
+                        plt.tight_layout()
+                        plt.show()
+
+                    print(f"\n{self.line}")
+                    p_value = select_group_test(groups, normality_pvals, alpha)
+                    if p_value < alpha:
+                        print(f"P-value: {p_value:.6f}.\n H₀ REJECTED: Significant difference found.")
+                    else:
+                        print(f"P-value: {p_value:.6f}.\n H₀ ACCEPTED: No significant difference.")
+                    print(self.line)
+        else:
+            raise ValueError('! cat_cols is empty')
+
+
+    def target_summary_with_num(self,dataframe, num_cols, cat_cols, target_col, num_summary_df, alpha=0.05, plot=False, width_for_graph=13, height_for_graph=5):
+
+        """
+        Analyzes the relationship between the target column and numerical columns.
+        - If target is categorical: T-test / Mann-Whitney U / ANOVA / Kruskal-Wallis
+        with box plot visualization. Normality is assessed independently per group
+        using Shapiro-Wilk (n ≤ 2500) or D'Agostino K² (n > 2500).
+        - If target is numerical: Pearson or Spearman correlation with scatter plot.
+        Requires num_summary() to be run first to determine the correlation method.
+
+        Parameters
+        ----------
+        plot : bool, optional
+            If True, displays charts for each numerical column (default: False).
+        width_for_graph : int, optional
+            Width of the figure in inches (default: 13).
+        height_for_graph : int, optional
+            Height of the figure in inches (default: 5).
+        """
+
+        if num_cols:
+            print(f'\n{self.line}')
+            print(' Target Analysis with Numerical Variables '.center(170))
+            print(self.line)
+            if target_col in cat_cols:
+                for col in num_cols:
+                    df_pivot = dataframe.pivot_table(index=target_col, values=col,
+                                                          aggfunc=['mean', 'median', 'count'], observed=False)
+                    print(df_pivot)
+                    groups, normality_pvals = get_groups(dataframe, target_col, col)
+                    if len(groups) < 2:
+                        print(f"Skipping {col}: Not enough groups for comparison.")
+                        continue
+                
+
+                    if plot:
+                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                        teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8',
+                                        '#9b5de5']
+                        categories = dataframe[target_col].unique()
+                        palette = {cat: teal_palette[i % len(teal_palette)] for i, cat in enumerate(categories)}
+                        sns.boxplot(data=dataframe, x=target_col, y=col,
+                                    palette=palette, ax=ax,
+                                    boxprops=dict(alpha=0.85), hue=target_col,
+                                    medianprops=dict(color='red', linewidth=2))
+                        ax.set_title(f'{col} by {target_col}', fontsize=13, fontweight='bold')
+                        ax.set_xlabel(target_col)
+                        ax.set_ylabel(col)
+                        plt.xticks(rotation=45, ha='right')
+                        plt.tight_layout()
+                        plt.show()
+
+                    print(f"\n{self.line}")
+                    p_value = select_group_test(groups, normality_pvals, alpha)
+                    if p_value < alpha:
+                        print(f"P-value: {p_value:.6f}.\n H₀ REJECTED: Significant difference found.")
+                    else:
+                        print(f"P-value: {p_value:.6f}.\n H₀ ACCEPTED: No significant difference.")
+                    print(self.line)
+
+            elif target_col in num_cols:
+                if num_summary_df is None:
+                    raise RuntimeError("Run num_summary() first.")
+                cols_to_analyze = [col for col in num_cols if col != target_col]
+                for col in cols_to_analyze:
+                    is_normal_target = \
+                        num_summary_df[num_summary_df['Column'] == target_col]['Result'].values[
+                            0] == 'Normal'
+                    is_normal_col = num_summary_df[num_summary_df['Column'] == col]['Result'].values[
+                                        0] == 'Normal'
+                    if is_normal_target and is_normal_col:
+                        method = 'Pearson'
+                        corr_value, p_value = scipy.stats.pearsonr(dataframe[target_col], dataframe[col])
+                    else:
+                        method = 'Spearman'
+                        corr_value, p_value = scipy.stats.spearmanr(dataframe[target_col],
+                                                                    dataframe[col])
+                    print(f'\nTarget: {target_col} ←→ {col}')
+                    print(f'Method: {method} Correlation')
+                    print(f'ρ: {corr_value}')
+                    print(f'p-value: {p_value}')
+                    if p_value < alpha:
+                        print(f"→ H₀ REJECTED: Significant correlation (p < {alpha})")
+                    else:
+                        print(f"→ H₀ ACCEPTED: No significant correlation")
+                    if abs(corr_value) < 0.1:
+                        strength = "Negligible"
+                    elif abs(corr_value) < 0.3:
+                        strength = "Weak"
+                    elif abs(corr_value) < 0.5:
+                        strength = "Moderate"
+                    elif abs(corr_value) < 0.7:
+                        strength = "Strong"
+                    else:
+                        strength = "Very strong"
+                    direction = 'positive' if corr_value > 0 else 'negative'
+                    print(f'Strength: {strength} {direction} correlation\n')
+
+                    if plot:
+                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
+                        fig.patch.set_facecolor('white')
+                        ax.set_facecolor('white')
+                        ax.grid(False)
+                        for spine in ax.spines.values():
+                            spine.set_edgecolor('#cccccc')
+                        ax.scatter(dataframe[target_col], dataframe[col],
+                                   color='#4682B4', alpha=0.5, s=20)
+                        m, b = np.polyfit(dataframe[target_col], dataframe[col], 1)
+                        x_line = np.linspace(dataframe[target_col].min(),
+                                             dataframe[target_col].max(), 200)
+                        ax.plot(x_line, m * x_line + b, color='red', linewidth=3)
+                        ax.set_title(f'{target_col} vs {col} | Method: {method} ρ={corr_value:.3f}',
+                                     fontsize=13, fontweight='bold')
+                        ax.set_xlabel(target_col)
+                        ax.set_ylabel(col)
+                        plt.tight_layout()
+                        plt.show()
+
+                    print(self.line)
+        else:
+            raise ValueError('! num_cols is empty ')
