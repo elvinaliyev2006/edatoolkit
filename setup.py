@@ -1,11 +1,16 @@
 from setuptools import setup, find_packages
+import os
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
+    long_description = f.read()
 
 setup(
     name="edatoolkit", 
-    version="0.1.0",
+    version="0.2.0",  
     author="Elvin Aliyev",
     description="A professional OOP-based EDA toolkit with statistical tests",
-    long_description=open("README.md",encoding="utf-8").read(),
+    long_description=long_description,
     long_description_content_type="text/markdown",
     packages=find_packages(),
     install_requires=[
