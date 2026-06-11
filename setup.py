@@ -7,12 +7,15 @@ with open(os.path.join(here, "README.md"), encoding="utf-8") as f:
 
 setup(
     name="edatoolkit", 
-    version="0.2.0",  
+    version="0.2.0",
     author="Elvin Aliyev",
     description="A professional OOP-based EDA toolkit with statistical tests",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    packages=find_packages(),
+    
+    # KÖK QOVLUĞU tap və yalnız onun daxilindəki paketləri götür
+    packages=find_packages(where="."), 
+    
     install_requires=[
         "pandas",
         "numpy",
