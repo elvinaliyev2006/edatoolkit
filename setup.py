@@ -13,7 +13,7 @@ setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     
-    # KÖK QOVLUĞU tap və yalnız onun daxilindəki paketləri götür
+  
     packages=find_packages(where="."), 
     
     install_requires=[
