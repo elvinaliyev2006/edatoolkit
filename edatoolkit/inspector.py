@@ -12,7 +12,6 @@ class Inspector:
     
 
     def get_columns_types(self,dataframe,car_th=20,cat_th=10):
-        def get_columns_types(dataframe,car_th=20,cat_th=10):
         """
         Classifies all dataframe columns into four groups based on their data type and cardinality.
 
