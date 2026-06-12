@@ -121,7 +121,7 @@ class EDA:
         list of str
             Columns flagged as non-normal by the statistical test.
         """
-        return self.normality.check_num(dataframe=self.dataframe,num_cols=self.num_cols,alpha=self.alpha,width_for_graph=width_for_graph,
+        return self.normality.check_num(dataframe=self.dataframe,num_cols=self.num_cols,alpha=self.alpha,plot=plot,width_for_graph=width_for_graph,
                                  height_for_graph=height_for_graph)
     
     def num_summary(self,result_dict):
