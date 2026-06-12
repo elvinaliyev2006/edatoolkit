@@ -12,6 +12,7 @@ class Inspector:
     
 
     def get_columns_types(self,dataframe,car_th=20,cat_th=10):
+        def get_columns_types(dataframe,car_th=20,cat_th=10):
         """
         Classifies all dataframe columns into four groups based on their data type and cardinality.
 
@@ -35,13 +36,14 @@ class Inspector:
             cat_but_car  : list of str — object/category columns with too many unique values
                         to be treated as categorical (high-cardinality).
         """
+        STRING_TYPES = {'object', 'bool', 'category', 'str', 'string'}
         cat_cols = [col for col in dataframe.columns if
-                    str(dataframe[col].dtype) in ['object', 'bool', 'category','str', 'string']]
+                    str(dataframe[col].dtype) in STRING_TYPES]
         num_but_cat = [col for col in dataframe.columns if
                        pd.api.types.is_numeric_dtype(dataframe[col]) and dataframe[
                            col].nunique() < cat_th]
         cat_but_car = [col for col in dataframe.columns if
-                       str(dataframe[col].dtype) in ['object', 'category'] and dataframe[
+                       str(dataframe[col].dtype) in STRING_TYPES and dataframe[
                            col].nunique() > car_th]
         c_c = [col for col in num_but_cat if col not in cat_cols ]
         cat_cols = cat_cols + c_c
