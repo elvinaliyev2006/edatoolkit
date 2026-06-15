@@ -54,7 +54,7 @@ edatoolkit/
 | `categorical.py` | `CategoricalAnalyzer` | Value counts, ratios, bar charts |
 | `target.py` | `TargetAnalyzer` | Target vs categorical / numerical statistical analysis |
 | `correlation.py` | `Correlation` | Correlation heatmaps (Pearson / Spearman / Kendall) |
-| `helpers.py` | *(functions)* | `get_groups`, `select_group_test` — shared test logic |
+| `helpers.py` | *(functions)* | `get_groups`, `select_group_test`, `calculate_advanced_effect_size` — shared test logic |
 | `eda.py` | `EDA` | Facade that orchestrates all modules above |
 
 ---
@@ -98,11 +98,11 @@ Options: detect only · remove rows · cap (winsorize).
 
 ### 🎯 Target-Based Statistical Analysis
 
-**Target vs Categorical:**
+**Target(categorical) vs Categorical:**
 - Chi-Square test + Cramér's V effect size
 - Crosstab heatmaps with percentage normalization
 
-**Target vs Numerical — test selected automatically:**
+**Target(categorical) vs Numerical — test selected automatically:**
 
 | Condition | Test |
 |---|---|
@@ -110,10 +110,24 @@ Options: detect only · remove rows · cap (winsorize).
 | 2 groups, otherwise | Mann-Whitney U |
 | 3+ groups, normal, equal variance | One-Way ANOVA |
 | 3+ groups, otherwise | Kruskal-Wallis |
+> When H₀ is rejected, effect size is computed automatically (r, η², or ε²)
+> with a plain-English interpretation of its practical significance.
 
-**Numerical target correlations:**
+**Target(numerical) vs Numerical:**
 - Pearson (both columns normal) or Spearman (otherwise)
 - Scatter plot with regression line + strength label
+
+**Target(numerical) vs Categorical:**
+
+| Condition | Test |
+|---|---|
+| 2 groups, normal, n > 30 | Welch's t-test |
+| 2 groups, otherwise | Mann-Whitney U |
+| 3+ groups, normal, equal variance | One-Way ANOVA |
+| 3+ groups, otherwise | Kruskal-Wallis |
+> When H₀ is rejected, effect size is computed automatically (r, η², or ε²)
+> with a plain-English interpretation of its practical significance.
+
 
 ### 🔗 Correlation Heatmap
 
