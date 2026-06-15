@@ -3,7 +3,7 @@ import scipy
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-from .helpers import get_groups, select_group_test 
+from .helpers import get_groups, select_group_test ,calculate_advanced_effect_size
 
 
 pd.set_option('display.max_columns', None)
@@ -192,9 +192,10 @@ class TargetAnalyzer:
                         plt.show()
 
                     print(f"\n{self.line}")
-                    p_value = select_group_test(groups, normality_pvals, alpha)
+                    stat,p_value,test_name = select_group_test(groups, normality_pvals, alpha)
                     if p_value < alpha:
                         print(f"P-value: {p_value:.6f}.\n H₀ REJECTED: Significant difference found.")
+                        calculate_advanced_effect_size(test_name,stat,groups)
                     else:
                         print(f"P-value: {p_value:.6f}.\n H₀ ACCEPTED: No significant difference.")
                     print(self.line)
@@ -297,9 +298,10 @@ class TargetAnalyzer:
                         plt.show()
 
                     print(f"\n{self.line}")
-                    p_value = select_group_test(groups, normality_pvals, alpha)
+                    stat, p_value, test_name = select_group_test(groups, normality_pvals, alpha)
                     if p_value < alpha:
                         print(f"P-value: {p_value:.6f}.\n H₀ REJECTED: Significant difference found.")
+                        calculate_advanced_effect_size(test_name,stat,groups)
                     else:
                         print(f"P-value: {p_value:.6f}.\n H₀ ACCEPTED: No significant difference.")
                     print(self.line)
