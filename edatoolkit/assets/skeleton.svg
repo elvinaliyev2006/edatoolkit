@@ -41,7 +41,6 @@
     .cls-box-12 { animation-delay: 1.15s; }
     .cls-box-13 { animation-delay: 1.25s; }
 
-    /* flow lines — each offset so the pulse ripples down in order */
     .fl-1  { stroke-dasharray: 6 6; animation-delay: 0.18s; }
     .fl-2  { stroke-dasharray: 6 6; animation-delay: 0.28s; }
     .fl-3  { stroke-dasharray: 6 6; animation-delay: 0.38s; }
@@ -64,21 +63,14 @@
   </marker>
 </defs>
 
-<!-- background -->
 <rect width="780" height="820" fill="#ffffff" rx="12"/>
 
-<!-- ══════════════════════════════════════════════
-     EDA  (top centre)
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-1">
   <rect x="224" y="20" width="332" height="68" rx="12" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.8"/>
   <text class="th" x="390" y="50" text-anchor="middle" dominant-baseline="central" fill="#26215C">EDA  (Facade)</text>
   <text class="ts" x="390" y="70" text-anchor="middle" dominant-baseline="central" fill="#534AB7">dataframe · target_col · cat_th · car_th · alpha</text>
 </g>
 
-<!-- ══════════════════════════════════════════════
-     State attributes row
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-2">
   <rect x="30" y="136" width="190" height="44" rx="8" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
   <text class="th" x="125" y="152" text-anchor="middle" dominant-baseline="central" fill="#2C2C2A">cat_cols</text>
@@ -95,18 +87,13 @@
   <text class="ts" x="560" y="168" text-anchor="middle" dominant-baseline="central" fill="#5F5E5A">set via num_summary()</text>
 </g>
 
-<!-- state connectors — flow lines -->
 <line class="flow-line fl-1" x1="390" y1="88" x2="125" y2="136" stroke="#ccc" stroke-width="0.9" fill="none" marker-end="url(#arr)"/>
 <line class="flow-line fl-2" x1="390" y1="88" x2="340" y2="136" stroke="#ccc" stroke-width="0.9" fill="none" marker-end="url(#arr)"/>
 <line class="flow-line fl-3" x1="390" y1="88" x2="560" y2="136" stroke="#ccc" stroke-width="0.9" fill="none" marker-end="url(#arr)"/>
 
-<!-- ── Section divider ── -->
 <text class="ts" x="30" y="218" fill="#aaa">methods</text>
 <line x1="80" y1="213" x2="750" y2="213" stroke="#ddd" stroke-width="0.5"/>
 
-<!-- ══════════════════════════════════════════════
-     Row 1 — Inspector
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-5">
   <rect x="30" y="226" width="210" height="52" rx="8" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
   <text class="th" x="135" y="246" text-anchor="middle" dominant-baseline="central" fill="#04342C">check_dataframe()</text>
@@ -123,9 +110,6 @@
   <text class="ts" x="618" y="264" text-anchor="middle" dominant-baseline="central" fill="#0F6E56">re-runs column classification</text>
 </g>
 
-<!-- ══════════════════════════════════════════════
-     Row 2 — NormalityAnalyzer
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-6">
   <rect x="30" y="316" width="210" height="52" rx="8" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.8"/>
   <text class="th" x="135" y="336" text-anchor="middle" dominant-baseline="central" fill="#412402">descriptive_analysis()</text>
@@ -142,13 +126,9 @@
   <text class="ts" x="618" y="354" text-anchor="middle" dominant-baseline="central" fill="#854F0B">sets num_summary_df · Normal / Non-normal</text>
 </g>
 
-<!-- req badge between check_num → num_summary -->
 <line class="flow-line-amber fl-a1" x1="468" y1="342" x2="486" y2="342" stroke="#BA7517" stroke-width="1.2" fill="none" marker-end="url(#arr-amber)"/>
 <text class="ts" x="477" y="334" text-anchor="middle" fill="#BA7517">req</text>
 
-<!-- ══════════════════════════════════════════════
-     Row 3 — OutlierAnalyzer + CategoricalAnalyzer
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-9">
   <rect x="30" y="416" width="336" height="52" rx="8" fill="#FAECE7" stroke="#993C1D" stroke-width="0.5"/>
   <text class="th" x="198" y="436" text-anchor="middle" dominant-baseline="central" fill="#4A1B0C">check_outlier()</text>
@@ -160,9 +140,6 @@
   <text class="ts" x="567" y="454" text-anchor="middle" dominant-baseline="central" fill="#993C1D">value counts · ratios · bar charts</text>
 </g>
 
-<!-- ══════════════════════════════════════════════
-     Row 4 — TargetAnalyzer
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-10">
   <rect x="30" y="516" width="355" height="52" rx="8" fill="#E6F1FB" stroke="#185FA5" stroke-width="0.5"/>
   <text class="th" x="207" y="536" text-anchor="middle" dominant-baseline="central" fill="#042C53">target_summary_with_cat()</text>
@@ -174,41 +151,26 @@
   <text class="ts" x="576" y="554" text-anchor="middle" dominant-baseline="central" fill="#185FA5">T-test / ANOVA / Kruskal / Pearson / Spearman</text>
 </g>
 
-<!-- ══════════════════════════════════════════════
-     Row 5 — Correlation + helpers.py
-     ══════════════════════════════════════════════ -->
 <g class="cls-box cls-box-12">
   <rect x="30" y="616" width="355" height="52" rx="8" fill="#EDE6FB" stroke="#6B3FA0" stroke-width="0.5"/>
   <text class="th" x="207" y="636" text-anchor="middle" dominant-baseline="central" fill="#2E1760">correlation_heatmap()</text>
   <text class="ts" x="207" y="654" text-anchor="middle" dominant-baseline="central" fill="#6B3FA0">Pearson · Spearman · Kendall</text>
 </g>
 <g class="cls-box cls-box-13">
-  <rect x="403" y="616" width="347" height="52" rx="8" fill="#FFF8E1" stroke="#B8860B" stroke-width="0.5" stroke-dasharray="5 3"/>
-  <text class="th" x="576" y="636" text-anchor="middle" dominant-baseline="central" fill="#5C4000">helpers.py</text>
-  <text class="ts" x="576" y="654" text-anchor="middle" dominant-baseline="central" fill="#B8860B">get_groups() · select_group_test()</text>
+  <rect x="403" y="610" width="347" height="64" rx="8" fill="#FFF8E1" stroke="#B8860B" stroke-width="0.5" stroke-dasharray="5 3"/>
+  <text class="th" x="576" y="628" text-anchor="middle" dominant-baseline="central" fill="#5C4000">helpers.py</text>
+  <text class="ts" x="576" y="644" text-anchor="middle" dominant-baseline="central" fill="#B8860B">get_groups() · select_group_test()</text>
+  <text class="ts" x="576" y="660" text-anchor="middle" dominant-baseline="central" fill="#B8860B">calculate_advanced_effect_size()</text>
 </g>
 
-<!-- ══════════════════════════════════════════════
-     Vertical flow connectors  (main spine — left side)
-     ══════════════════════════════════════════════ -->
-<!-- state → inspector -->
 <line class="flow-line fl-4" x1="135" y1="180" x2="135" y2="226" stroke="#ccc" stroke-width="0.7" fill="none" marker-end="url(#arr)"/>
 <line class="flow-line fl-4" x1="340" y1="180" x2="340" y2="226" stroke="#ccc" stroke-width="0.7" fill="none" marker-end="url(#arr)"/>
-<!-- inspector → normality -->
 <line class="flow-line fl-5" x1="135" y1="278" x2="135" y2="316" stroke="#BA7517" stroke-width="0.7" fill="none" marker-end="url(#arr-amber)"/>
-<!-- normality → outlier -->
 <line class="flow-line-amber fl-a2" x1="135" y1="368" x2="135" y2="416" stroke="#BA7517" stroke-width="0.7" fill="none" marker-end="url(#arr-amber)"/>
-<!-- outlier → target -->
 <line class="flow-line fl-6" x1="135" y1="468" x2="135" y2="516" stroke="#ccc" stroke-width="0.7" fill="none" marker-end="url(#arr)"/>
-<!-- target → correlation -->
 <line class="flow-line fl-7" x1="135" y1="568" x2="135" y2="616" stroke="#ccc" stroke-width="0.7" fill="none" marker-end="url(#arr)"/>
-
-<!-- helpers dependency arrows (dashed, from target rows) -->
 <line class="flow-line-amber fl-a3" x1="750" y1="568" x2="750" y2="616" stroke="#B8860B" stroke-width="0.7" stroke-dasharray="4 3" fill="none" marker-end="url(#arr-amber)"/>
 
-<!-- ══════════════════════════════════════════════
-     Legend
-     ══════════════════════════════════════════════ -->
 <line x1="30" y1="690" x2="750" y2="690" stroke="#eee" stroke-width="0.5"/>
 <rect x="30"  y="700" width="10" height="10" rx="2" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
 <text class="ts" x="46"  y="709" fill="#555">Inspector</text>
