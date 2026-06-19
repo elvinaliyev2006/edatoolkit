@@ -1,4 +1,4 @@
-# edatoolkit 📊
+# edatoolkit 
 
 [![Python](https://img.shields.io/badge/python-3.7%2B-blue)](https://www.python.org/)
 [![License](https://img.shields.io/badge/license-MIT-green)](LICENSE)
@@ -11,13 +11,13 @@ The toolkit has been refactored into a **fully modular architecture**: each anal
 
 ---
 
-## 🗺️ Architecture
+## Architecture
 
 ![edatoolkit modular architecture](edatoolkit/assets/skeleton.svg)
 
 ---
 
-## 📦 Package Structure
+## Package Structure
 
 ```
 edatoolkit/
@@ -44,7 +44,7 @@ edatoolkit/
 
 ---
 
-## 🧩 Module Overview
+## Module Overview
 
 | Module | Class | Responsibility |
 |---|---|---|
@@ -59,9 +59,9 @@ edatoolkit/
 
 ---
 
-## 🚀 Key Features
+## Key Features
 
-### 🔍 Automated Column Classification
+### Automated Column Classification
 
 Columns are automatically categorized on initialization:
 
@@ -74,11 +74,11 @@ Columns are automatically categorized on initialization:
 
 > `num_but_cat` columns are merged into `cat_cols`. `cat_but_car` is excluded from both. Inspect them via `eda.cat_but_car`.
 
-### 📊 Numerical Analysis
+### Numerical Analysis
 
 Extended descriptive statistics: percentiles (1%→99%), mean, median, std, **CV%**, skewness, kurtosis.
 
-### 📈 Normality Diagnostics
+### Normality Diagnostics
 
 Per-column Q-Q plot, histogram, and box plot — plus automatic test selection:
 
@@ -87,7 +87,7 @@ Per-column Q-Q plot, histogram, and box plot — plus automatic test selection:
 
 > Always validate visually before finalizing normality decisions.
 
-### 🚨 Smart Outlier Detection
+### Smart Outlier Detection
 
 Distribution-aware method selection per column:
 
@@ -96,7 +96,7 @@ Distribution-aware method selection per column:
 
 Options: detect only · remove rows · cap (winsorize).
 
-### 🎯 Target-Based Statistical Analysis
+### Target-Based Statistical Analysis
 
 **Target(categorical) vs Categorical:**
 - Chi-Square test + Cramér's V effect size
@@ -129,15 +129,15 @@ Options: detect only · remove rows · cap (winsorize).
 > with a plain-English interpretation of its practical significance.
 
 
-### 🔗 Correlation Heatmap
+### Correlation Heatmap
 
 Annotated heatmaps using Pearson, Spearman, or Kendall.
 
 ---
 
-## 🔄 Recommended Workflow
+## Recommended Workflow
 
-> ⚠️ Some methods depend on earlier steps. Follow this order:
+>  Some methods depend on earlier steps. Follow this order:
 
 ```
 1.  EDA(df, target_col)              # Initialize — column types auto-classified
@@ -154,7 +154,7 @@ Annotated heatmaps using Pearson, Spearman, or Kendall.
 
 ---
 
-## 🚀 Installation
+## Installation
 
 ```bash
 git clone https://github.com/elvinaliyev2006/edatoolkit.git
@@ -164,7 +164,7 @@ pip install -e .
 
 ---
 
-## 📦 Dependencies
+## Dependencies
 
 | Package | Purpose |
 |---|---|
@@ -180,7 +180,7 @@ pip install -r requirements.txt
 
 ---
 
-## 💡 Quick Start
+## Quick Start
 
 ```python
 from edatoolkit import EDA
@@ -234,7 +234,7 @@ normality.check_num(df, num_cols, plot=True)
 
 ---
 
-## ⚙️ Parameters
+## Parameters
 
 ### `EDA` constructor
 
@@ -271,7 +271,7 @@ normality.check_num(df, num_cols, plot=True)
 
 ---
 
-## ⚠️ Common Errors
+## Common Errors
 
 | Error | Cause | Fix |
 |---|---|---|
@@ -282,30 +282,30 @@ normality.check_num(df, num_cols, plot=True)
 
 ---
 
-## 🎯 Design Philosophy
+## Design Philosophy
 
-- ✅ **Modularity** — each analytical concern isolated in its own class; import only what you need
-- ✅ **Statistical correctness** — automatic test selection with appropriate fallbacks
-- ✅ **Automation + flexibility** — semi-automated with full manual override support
-- ✅ **Visual + analytical validation** — never trust a test without inspecting the plot
-- ✅ **Stateful** — normality decisions and reports persist across method calls for ML pipeline integration
+-  **Modularity** — each analytical concern isolated in its own class; import only what you need
+-  **Statistical correctness** — automatic test selection with appropriate fallbacks
+-  **Automation + flexibility** — semi-automated with full manual override support
+-  **Visual + analytical validation** — never trust a test without inspecting the plot
+-  **Stateful** — normality decisions and reports persist across method calls for ML pipeline integration
 
 ---
 
 
 
-## 📄 License
+## License
 
 Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Fork the repository and submit a pull request. For major changes, open an issue first to discuss your proposal.
 
 ---
 
-## ⭐ Support
+## Support
 
-If you find this project useful, consider giving it a **star ⭐ on GitHub** — it really helps!
+If you find this project useful, consider giving it a **star  on GitHub** — it really helps!
