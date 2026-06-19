@@ -293,7 +293,6 @@ normality.check_num(df, num_cols, plot=True)
 ---
 
 
-
 ## License
 
 Licensed under the **MIT License**. See [LICENSE](LICENSE) for details.
