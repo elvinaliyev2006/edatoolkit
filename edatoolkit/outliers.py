@@ -13,7 +13,7 @@ class OutlierAnalyzer:
         self.line = '─' * 170
 
 
-    def check_outlier(self,dataframe, num_cols, num_summary_df, iqr_th=1.5, z_score_th=3, remove=False, cap=False):
+    def check_outlier(self,dataframe, num_cols, num_summary_df,q1_th=0.25,q3_th=0.75 iqr_th=1.5, z_score_th=3, remove=False, cap=False):
             """
             Detects outliers in numerical columns using the appropriate statistical method
             based on each column's distribution, then optionally removes or caps them.
@@ -34,6 +34,12 @@ class OutlierAnalyzer:
             num_summary_df : pd.DataFrame
                 Normality summary produced by num_summary(). Required to select the
                 correct detection method per column.
+            q1_th : float, optional
+                Quantile used as the first quartile (Q1) when applying the IQR method.
+                Must be between 0 and 1 (default: 0.25).
+            q3_th : float, optional
+                Quantile used as the third quartile (Q3) when applying the IQR method.
+                Must be between 0 and 1 (default: 0.75).
             iqr_th : float, optional
                 IQR multiplier used to set the lower/upper fence (default: 1.5).
             z_score_th : int, optional
@@ -88,8 +94,8 @@ class OutlierAnalyzer:
                         outliers = data[z_scores > z_score_th]
                         method = "z-score"
                     else:
-                        q1 = data.quantile(0.25)
-                        q3 = data.quantile(0.75)
+                        q1 = data.quantile(q1_th)
+                        q3 = data.quantile(q3_th)
                         iqr = q3 - q1
                         lower = q1 - iqr_th * iqr
                         upper = q3 + iqr_th * iqr
