@@ -252,8 +252,13 @@ normality.check_num(df, num_cols, plot=True)
 |---|---|---|---|
 | `iqr_th` | `float` | IQR multiplier | `1.5` |
 | `z_score_th` | `int` | Z-score threshold | `3` |
+| `q1_th` | `float` | Lower percentile used for IQR calculation | `0.25` |
+| `q3_th` | `float` | Upper percentile used for IQR calculation | `0.75` |
 | `remove` | `bool` | Drop outlier rows | `False` |
 | `cap` | `bool` | Winsorize outliers | `False` |
+
+> `remove` and `cap` cannot both be `True`.
+> `q1_th` must be less than `q3_th`, and both must be between `0` and `1`.
 
 > `remove` and `cap` cannot both be `True`.
 
