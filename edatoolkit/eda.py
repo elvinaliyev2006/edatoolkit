@@ -143,7 +143,7 @@ class EDA:
         self.num_summary_df=self.normality.num_summary(num_cols=self.num_cols,result_dict=result_dict)
         return self.num_summary_df
     
-    def check_outlier(self,iqr_th=1.5, z_score_th=3, remove=False, cap=False):
+    def check_outlier(self, q1_th=0.25, q3_th=0.25, iqr_th=1.5, z_score_th=3, remove=False, cap=False):
         """
         Delegates to OutlierAnalyzer.check_outlier().
         Detects outliers using Z-score (normal columns) or IQR (non-normal columns).
@@ -152,6 +152,12 @@ class EDA:
 
         Parameters
         ----------
+        q1_th : float, optional
+            Quantile used as the first quartile (Q1) when applying the IQR method.
+            Must be between 0 and 1 (default: 0.25).
+        q3_th : float, optional
+            Quantile used as the third quartile (Q3) when applying the IQR method.
+            Must be between 0 and 1 (default: 0.75).
         iqr_th : float, optional
             IQR multiplier (default: 1.5).
         z_score_th : int, optional
@@ -169,7 +175,7 @@ class EDA:
         if self.num_summary_df is None:
             raise RuntimeError("Run num_summary() first.")
         result=self.outliers.check_outlier(dataframe=self.dataframe,num_cols=self.num_cols,num_summary_df=self.num_summary_df,
-                                           iqr_th=iqr_th,z_score_th=z_score_th,remove=remove,cap=cap)
+                                           q1_th=q1_th, q3_th=q3_th,iqr_th=iqr_th,z_score_th=z_score_th,remove=remove,cap=cap)
         if isinstance(result, tuple):
             outlier_report, self.dataframe = result
             self.num_summary_df = None
