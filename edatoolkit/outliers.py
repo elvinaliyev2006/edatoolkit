@@ -13,7 +13,7 @@ class OutlierAnalyzer:
         self.line = '─' * 170
 
 
-    def check_outlier(self,dataframe, num_cols, num_summary_df,q1_th=0.25,q3_th=0.75 iqr_th=1.5, z_score_th=3, remove=False, cap=False):
+    def check_outlier(self,dataframe, num_cols, num_summary_df,q1_th=0.25,q3_th=0.75, iqr_th=1.5, z_score_th=3, remove=False, cap=False):
             """
             Detects outliers in numerical columns using the appropriate statistical method
             based on each column's distribution, then optionally removes or caps them.
