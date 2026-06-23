@@ -143,7 +143,7 @@ class EDA:
         self.num_summary_df=self.normality.num_summary(num_cols=self.num_cols,result_dict=result_dict)
         return self.num_summary_df
     
-    def check_outlier(self, q1_th=0.25, q3_th=0.25, iqr_th=1.5, z_score_th=3, remove=False, cap=False):
+    def check_outlier(self, q1_th=0.25, q3_th=0.75, iqr_th=1.5, z_score_th=3, remove=False, cap=False):
         """
         Delegates to OutlierAnalyzer.check_outlier().
         Detects outliers using Z-score (normal columns) or IQR (non-normal columns).
