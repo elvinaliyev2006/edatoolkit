@@ -39,7 +39,7 @@ class TargetAnalyzer:
                 2 groups, non-normal → Mann-Whitney U
                 3+ groups, normal + equal variance → One-way ANOVA
                 3+ groups, otherwise → Kruskal-Wallis
-            - Optionally displays a box plot per categorical column.
+            - Optionally displays a box plot + overlapping histogram per categorical column.
 
         Parameters
         ----------
@@ -170,24 +170,64 @@ class TargetAnalyzer:
                         continue
 
                     if plot:
-                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
-                        fig.patch.set_facecolor('white')
-                        ax.set_facecolor('white')
-                        ax.grid(False)
-                        for spine in ax.spines.values():
-                            spine.set_edgecolor('#cccccc')
                         teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8',
                                         '#9b5de5']
-                        categories = dataframe[col].unique()
+                        categories = dataframe[col].dropna().unique()
                         palette = {cat: teal_palette[i % len(teal_palette)] for i, cat in enumerate(categories)}
-                        sns.boxplot(data=dataframe, x=col, y=target_col,
-                                    palette=palette, ax=ax, hue=col,
-                                    boxprops=dict(alpha=0.85),
-                                    medianprops=dict(color='red', linewidth=2))
-                        ax.set_title(f'{target_col} by {col}', fontsize=13, fontweight='bold')
-                        ax.set_xlabel(col)
-                        ax.set_ylabel(target_col)
-                        plt.xticks(rotation=45, ha='right')
+
+                        fig, (ax_box, ax_hist) = plt.subplots(
+                            1, 2,
+                            figsize=(width_for_graph * 1.4, height_for_graph),
+                            gridspec_kw={'width_ratios': [1, 1]}
+                        )
+                        fig.patch.set_facecolor('white')
+                        for ax in (ax_box, ax_hist):
+                            ax.set_facecolor('white')
+                            ax.grid(False)
+                            for spine in ax.spines.values():
+                                spine.set_edgecolor('#cccccc')
+
+                        sns.boxplot(
+                            data=dataframe, x=col, y=target_col,
+                            palette=palette, ax=ax_box, hue=col,
+                            boxprops=dict(alpha=0.85),
+                            medianprops=dict(color='red', linewidth=2)
+                        )
+                        ax_box.set_title(f'{target_col} by {col}', fontsize=12, fontweight='bold')
+                        ax_box.set_xlabel(col)
+                        ax_box.set_ylabel(target_col)
+                        plt.setp(ax_box.get_xticklabels(), rotation=45, ha='right')
+                        bin_count = min(40, max(10, int(np.sqrt(len(dataframe)))))
+                        all_vals = dataframe[target_col].dropna()
+                        bins = np.linspace(all_vals.min(), all_vals.max(), bin_count + 1)
+
+                        for i, cat in enumerate(categories):
+                            vals = dataframe.loc[dataframe[col] == cat, target_col].dropna()
+                            ax_hist.hist(
+                                vals, bins=bins,
+                                color=teal_palette[i % len(teal_palette)],
+                                alpha=0.45, label=str(cat),
+                                edgecolor='white', linewidth=0.4
+                            )
+                           
+                            if len(vals) > 5:
+                                kde_x = np.linspace(all_vals.min(), all_vals.max(), 300)
+                                kde = scipy.stats.gaussian_kde(vals, bw_method='scott')
+                                ax_hist_twin = ax_hist.twinx()
+                                ax_hist_twin.plot(
+                                    kde_x, kde(kde_x),
+                                    color=teal_palette[i % len(teal_palette)],
+                                    linewidth=2, alpha=0.9
+                                )
+                                ax_hist_twin.set_yticks([])
+                                ax_hist_twin.set_facecolor('white')
+
+                        ax_hist.set_title(f'Distribution of {target_col} by {col}', fontsize=12, fontweight='bold')
+                        ax_hist.set_xlabel(target_col)
+                        ax_hist.set_ylabel('Count')
+                        ax_hist.legend(title=col, framealpha=0.7)
+
+                        fig.suptitle(f'{target_col}  ×  {col}', fontsize=13, fontweight='bold', y=1.01)
                         plt.tight_layout()
                         plt.show()
 
@@ -215,7 +255,7 @@ class TargetAnalyzer:
             or D'Agostino K² (n > 2500).
             - Selects the appropriate significance test automatically (same logic as
             target_summary_with_cat for the numerical-target case).
-            - Optionally displays a box plot for each numerical column.
+            - Optionally displays a box plot + overlapping histogram for each numerical column.
 
         Target is numerical:
             - Requires num_summary_df (run num_summary() first).
@@ -273,27 +313,65 @@ class TargetAnalyzer:
                     if len(groups) < 2:
                         print(f"Skipping {col}: Not enough groups for comparison.")
                         continue
-                
 
                     if plot:
-                        fig, ax = plt.subplots(figsize=(width_for_graph, height_for_graph))
-                        fig.patch.set_facecolor('white')
-                        ax.set_facecolor('white')
-                        ax.grid(False)
-                        for spine in ax.spines.values():
-                            spine.set_edgecolor('#cccccc')
                         teal_palette = ['#355c7d', '#43aa8b', '#c77dff', '#f67280', '#f8961e', '#ef476f', '#00b4d8',
                                         '#9b5de5']
-                        categories = dataframe[target_col].unique()
+                        categories = dataframe[target_col].dropna().unique()
                         palette = {cat: teal_palette[i % len(teal_palette)] for i, cat in enumerate(categories)}
-                        sns.boxplot(data=dataframe, x=target_col, y=col,
-                                    palette=palette, ax=ax,
-                                    boxprops=dict(alpha=0.85), hue=target_col,
-                                    medianprops=dict(color='red', linewidth=2))
-                        ax.set_title(f'{col} by {target_col}', fontsize=13, fontweight='bold')
-                        ax.set_xlabel(target_col)
-                        ax.set_ylabel(col)
-                        plt.xticks(rotation=45, ha='right')
+
+                        fig, (ax_box, ax_hist) = plt.subplots(
+                            1, 2,
+                            figsize=(width_for_graph * 1.4, height_for_graph),
+                            gridspec_kw={'width_ratios': [1, 1]}
+                        )
+                        fig.patch.set_facecolor('white')
+                        for ax in (ax_box, ax_hist):
+                            ax.set_facecolor('white')
+                            ax.grid(False)
+                            for spine in ax.spines.values():
+                                spine.set_edgecolor('#cccccc')
+
+                        sns.boxplot(
+                            data=dataframe, x=target_col, y=col,
+                            palette=palette, ax=ax_box, hue=target_col,
+                            boxprops=dict(alpha=0.85),
+                            medianprops=dict(color='red', linewidth=2)
+                        )
+                        ax_box.set_title(f'{col} by {target_col}', fontsize=12, fontweight='bold')
+                        ax_box.set_xlabel(target_col)
+                        ax_box.set_ylabel(col)
+                        plt.setp(ax_box.get_xticklabels(), rotation=45, ha='right')
+                        bin_count = min(40, max(10, int(np.sqrt(len(dataframe)))))
+                        all_vals = dataframe[col].dropna()
+                        bins = np.linspace(all_vals.min(), all_vals.max(), bin_count + 1)
+
+                        for i, cat in enumerate(categories):
+                            vals = dataframe.loc[dataframe[target_col] == cat, col].dropna()
+                            ax_hist.hist(
+                                vals, bins=bins,
+                                color=teal_palette[i % len(teal_palette)],
+                                alpha=0.45, label=str(cat),
+                                edgecolor='white', linewidth=0.4
+                            )
+                            if len(vals) > 5:
+                                kde_x = np.linspace(all_vals.min(), all_vals.max(), 300)
+                                kde = scipy.stats.gaussian_kde(vals, bw_method='scott')
+                                ax_hist_twin = ax_hist.twinx()
+                                ax_hist_twin.plot(
+                                    kde_x, kde(kde_x),
+                                    color=teal_palette[i % len(teal_palette)],
+                                    linewidth=2, alpha=0.9
+                                )
+                                ax_hist_twin.set_yticks([])
+                                ax_hist_twin.set_facecolor('white')
+
+                        ax_hist.set_title(f'Distribution of {col} by {target_col}', fontsize=12, fontweight='bold')
+                        ax_hist.set_xlabel(col)
+                        ax_hist.set_ylabel('Count')
+                        ax_hist.legend(title=target_col, framealpha=0.7)
+
+                        fig.suptitle(f'{col}  ×  {target_col}', fontsize=13, fontweight='bold', y=1.01)
                         plt.tight_layout()
                         plt.show()
 
