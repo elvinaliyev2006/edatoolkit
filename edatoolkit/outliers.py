@@ -112,10 +112,8 @@ class OutlierAnalyzer:
                         cleaned_df[col] = cleaned_df[col].clip(lower=lower, upper=upper)
                         print(f"  → '{col}' capped at [{lower:.4f}, {upper:.4f}]")
                 if remove:
-                    print("! Outliers removed. Run num_summary() again before further analysis.")
                     return outlier_report, cleaned_df.reset_index(drop=True)
                 elif cap:
-                    print("\n! Outliers capped. Run num_summary() again before further analysis.")
                     return outlier_report, cleaned_df
                 else:
                     return outlier_report
